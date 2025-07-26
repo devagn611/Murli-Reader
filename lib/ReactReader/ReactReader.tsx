@@ -6,6 +6,8 @@ import {
   type IReactReaderStyle,
 } from './style'
 import { type NavItem } from 'epubjs'
+import { Button, Card, IconButton } from '@radix-ui/themes'
+import { ChevronLeft, ChevronRight, Menu, X } from 'lucide-react'
 
 type SwipeWrapperProps = {
   children: ReactNode
@@ -25,9 +27,9 @@ type TocItemProps = {
 
 const TocItem = ({ data, setLocation, styles }: TocItemProps) => (
   <div>
-    <button onClick={() => setLocation(data.href)} style={styles}>
+    <Button variant="ghost" onClick={() => setLocation(data.href)} style={styles}>
       {data.label}
-    </button>
+    </Button>
     {data.subitems && data.subitems.length > 0 && (
       <div style={{ paddingLeft: 10 }}>
         {data.subitems.map((item, i) => (
@@ -105,7 +107,7 @@ export class ReactReader extends PureComponent<
     const { readerStyles = defaultStyles } = this.props
     return (
       <div>
-        <div style={readerStyles.tocArea}>
+        <Card size="2" style={readerStyles.tocArea}>
           <div style={readerStyles.toc}>
             {toc.map((item, i) => (
               <TocItem
@@ -116,7 +118,7 @@ export class ReactReader extends PureComponent<
               />
             ))}
           </div>
-        </div>
+        </Card>
         {expandedToc && (
           <div style={readerStyles.tocBackground} onClick={this.toggleToc} />
         )}
@@ -138,7 +140,8 @@ export class ReactReader extends PureComponent<
     const { expandedToc } = this.state
     const { readerStyles = defaultStyles } = this.props
     return (
-      <button
+      <IconButton
+        variant="ghost"
         style={Object.assign(
           {},
           readerStyles.tocButton,
@@ -146,21 +149,8 @@ export class ReactReader extends PureComponent<
         )}
         onClick={this.toggleToc}
       >
-        <span
-          style={Object.assign(
-            {},
-            readerStyles.tocButtonBar,
-            readerStyles.tocButtonBarTop
-          )}
-        />
-        <span
-          style={Object.assign(
-            {},
-            readerStyles.tocButtonBar,
-            readerStyles.tocButtonBottom
-          )}
-        />
-      </button>
+        {expandedToc ? <X /> : <Menu />}
+      </IconButton>
     )
   }
 
@@ -212,18 +202,24 @@ export class ReactReader extends PureComponent<
               {swipeable && <div style={readerStyles.swipeWrapper} />}
             </div>
           </SwipeWrapper>
-          <button
+          <IconButton
+            size="4"
+            variant="ghost"
+            color="gray"
             style={Object.assign({}, readerStyles.arrow, readerStyles.prev)}
             onClick={this.prev}
           >
-            ‹
-          </button>
-          <button
+            <ChevronLeft />
+          </IconButton>
+          <IconButton
+            size="4"
+            variant="ghost"
+            color="gray"
             style={Object.assign({}, readerStyles.arrow, readerStyles.next)}
             onClick={this.next}
           >
-            ›
-          </button>
+            <ChevronRight />
+          </IconButton>
         </div>
         {showToc && toc && this.renderToc()}
       </div>

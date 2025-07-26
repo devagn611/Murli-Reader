@@ -1,87 +1,85 @@
-import React, { useState, useEffect } from 'react'
-import { ReactReader } from '../../lib/index'
-import type { Contents,Rendition } from 'epubjs'
-
-import { Example } from '../components/Example'
-import SetBook from './SetBook'
+import React, { useState, useEffect } from 'react';
+import { ReactReader } from '../../lib/index';
+import type { Contents, Rendition } from 'epubjs';
+import { Select, Flex, Box, Card } from '@radix-ui/themes';
 
 interface Book {
   href: string;
   name: string;
   description: string;
 }
-export const SmoothScroll = () => {
-  const [location, setLocation] = useState<string | number>(0)
-  const [selectedBook, setSelectedBook] = useState<Book>({ href: '', name: '', description: '' })
-  const [currentChapterIndex, setCurrentChapterIndex] = useState(-1)
-  const [isTitlePage, setIsTitlePage] = useState(true)
 
-  useEffect(() => {
-    if (selectedBook.href) {
-      setCurrentChapterIndex(-1)
-      setIsTitlePage(true)
+const BookDropdown: React.FC<{
+  books: Book[];
+  onSelect: (book: Book) => void;
+}> = ({ books, onSelect }) => {
+  const handleSelect = (value: string) => {
+    const selectedBook = books.find((book) => book.href === value);
+    if (selectedBook) {
+      onSelect(selectedBook);
     }
-  }, [selectedBook])
-
-  const handlePrevious = () => {
-    if (currentChapterIndex > -1) {
-      setCurrentChapterIndex(prevIndex => prevIndex - 1)
-      if (currentChapterIndex === 0) {
-        setIsTitlePage(true)
-      }
-    }
-  }
-
-  const handleNext = () => {
-    if (isTitlePage) {
-      setIsTitlePage(false)
-      setCurrentChapterIndex(0)
-    } else {
-      setCurrentChapterIndex(prevIndex => prevIndex + 1)
-    }
-  }
-
-  const getCurrentUrl = () => {
-    if (selectedBook.href) {
-      if (isTitlePage) {
-        return `${selectedBook.href}/titlepage.xhtml`
-      } else {
-        const chapterNumber = currentChapterIndex.toString().padStart(3, '0')
-        return `${selectedBook.href}/index_split_${chapterNumber}.html`
-      }
-    }
-    return ''
-  }
+  };
 
   return (
-    <Example
-      title="Reader - Smooth"
-      actions={
-        <>
-        <SetBook setSelectedBook={setSelectedBook} />
-        {/* <p>
-          Sets css-property for epub-js manager to{' '}
-          <kbd>scroll-behavior: smooth</kbd>
-        </p> */}
-        </>
-      }
-    >
-     {getCurrentUrl() ? (
-        <ReactReader
-          url={getCurrentUrl()}
-          title={selectedBook.name}
-          location={location}
-          locationChanged={(loc: string) => setLocation(loc)}
-          getRendition={(_rendition: Rendition) => {
-            _rendition.hooks.content.register((contents: Contents) => {
-              // @ts-ignore - manager type is missing in epubjs Rendition
-              _rendition.manager.container.style['scroll-behavior'] = 'smooth'
-            })
-          }}
-        />
-      ) : (
-        <div>Please select a book to read.</div>
-      )}
-    </Example>
-  )
-}
+    <Select.Root onValueChange={handleSelect}>
+      <Select.Trigger placeholder="Select a Book" />
+      <Select.Content>
+        {books.map((book) => (
+          <Select.Item key={book.href} value={book.href}>
+            {book.name}
+          </Select.Item>
+        ))}
+      </Select.Content>
+    </Select.Root>
+  );
+};
+
+export const SmoothScroll: React.FC = () => {
+  const [location, setLocation] = useState<string | number>(0);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [books, setBooks] = useState<Book[]>([]);
+
+  useEffect(() => {
+    fetch('/files/data.json')
+      .then((response) => response.json())
+      .then((data) => {
+        setBooks(data.cards);
+        setSelectedBook(data.cards[0]);
+      })
+      .catch((error) => console.error('Error loading books:', error));
+  }, []);
+
+  const handleBookSelect = (book: Book) => {
+    setSelectedBook(book);
+    setLocation(0);
+  };
+
+  return (
+    <Card>
+      <Flex direction="column" gap="4" align="center">
+        <BookDropdown books={books} onSelect={handleBookSelect} />
+        <Box style={{ height: 'calc(100vh - 150px)', width: '100%' }}>
+          {selectedBook && (
+            <ReactReader
+              key={selectedBook.href}
+              url={selectedBook.href}
+              location={location}
+              locationChanged={(loc: string) => setLocation(loc)}
+              epubOptions={{
+                flow: 'scrolled',
+                manager: 'continuous',
+              }}
+              getRendition={(_rendition: Rendition) => {
+                _rendition.hooks.content.register((contents: Contents) => {
+                  // @ts-ignore - manager type is missing in epubjs Rendition
+                  _rendition.manager.container.style['scroll-behavior'] =
+                    'smooth';
+                });
+              }}
+            />
+          )}
+        </Box>
+      </Flex>
+    </Card>
+  );
+};

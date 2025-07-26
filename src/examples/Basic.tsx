@@ -1,7 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ReactReader } from "../../lib/index";
 import type { Rendition } from "epubjs";
-import { Example } from "../components/Example";
+import {
+  Select,
+  Flex,
+  Button,
+  Box,
+  Card,
+  Text,
+  IconButton,
+  Dialog,
+  Theme,
+} from "@radix-ui/themes";
+import { ChevronLeft, ChevronRight, Lightbulb } from "lucide-react";
 
 interface Book {
   filename: string;
@@ -12,29 +23,24 @@ const BookDropdown: React.FC<{
   books: Book[];
   onSelect: (book: Book) => void;
 }> = ({ books, onSelect }) => {
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedBook = books.find(
-      (book) => book.filename === event.target.value
-    );
+  const handleSelect = (value: string) => {
+    const selectedBook = books.find((book) => book.filename === value);
     if (selectedBook) {
       onSelect(selectedBook);
     }
   };
 
   return (
-    <select
-      onChange={handleChange}
-      className="book-dropdown p-2 bg-gray-900 text-white rounded-xl"
-    >
-      <option value="" disabled selected>
-        Select a Book
-      </option>
-      {books.map((book) => (
-        <option key={book.filename} value={book.filename}>
-          {book.name}
-        </option>
-      ))}
-    </select>
+    <Select.Root onValueChange={handleSelect}>
+      <Select.Trigger placeholder="Select a Book" />
+      <Select.Content>
+        {books.map((book) => (
+          <Select.Item key={book.filename} value={book.filename}>
+            {book.name}
+          </Select.Item>
+        ))}
+      </Select.Content>
+    </Select.Root>
   );
 };
 
@@ -44,10 +50,9 @@ export const Basic: React.FC = () => {
   const [location, setLocation] = useState<string | number>(0);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
+  const readerRef = useRef<ReactReader>(null);
 
   useEffect(() => {
-    // This function would typically be an API call to your backend
-    // For this example, we're simulating it with a local array
     const fetchBooks = async () => {
       const localBooks = [
         { filename: "1969_Hindi_Avyakt_Vaani.epub", name: "1969" },
@@ -101,60 +106,121 @@ export const Basic: React.FC = () => {
         { filename: "2017_Hindi_Avyakt_Vaani.epub", name: "2017" },
       ];
       setBooks(localBooks);
+      setSelectedBook(localBooks[0]);
     };
-
     fetchBooks();
   }, []);
 
   useEffect(() => {
-    rendition.current?.themes.fontSize(largeText ? "140%" : "100%");
+    if (rendition.current) {
+      rendition.current.themes.fontSize(largeText ? "140%" : "100%");
+    }
   }, [largeText]);
 
-  const handleSelectBook = (book: Book) => {
+  const handleBookSelect = (book: Book) => {
     setSelectedBook(book);
-    setLocation(0); // Reset location when a new book is selected
+    setLocation(0);
+  };
+
+  const onPrev = () => {
+    readerRef.current?.prev();
+  };
+
+  const onNext = () => {
+    readerRef.current?.next();
   };
 
   return (
-    <Example
-      title="Avyakt Murli Reader"
-      actions={
-        <>
-          <button
-            onClick={() => setLargeText(!largeText)}
-            className="btn border-2 border-black rounded-lg bg-transparent text-black py-2 px-4"
+    <Card>
+      <Flex direction="column" gap="4" align="center">
+        <Flex gap="4" align="center">
+          <BookDropdown books={books} onSelect={handleBookSelect} />
+          <Button onClick={() => setLargeText(!largeText)}>
+            Toggle font size
+          </Button>
+          <Dialog.Root>
+            <Dialog.Trigger>
+              <IconButton>
+                <Lightbulb />
+              </IconButton>
+            </Dialog.Trigger>
+            <Theme>
+              <Dialog.Content style={{ maxWidth: 450 }}>
+                <Dialog.Title>Navigation Tips</Dialog.Title>
+                <Dialog.Description size="2" mb="4">
+                  You can navigate through the book in a few ways:
+                </Dialog.Description>
+
+                <Flex direction="column" gap="3">
+                  <Text as="label">
+                    <Flex gap="2" align="center">
+                      <b>Swipe:</b> Swipe left or right to turn the page.
+                    </Flex>
+                  </Text>
+                  <Text as="label">
+                    <Flex gap="2" align="center">
+                      <b>Buttons:</b> Use the arrow buttons on the sides to
+                      navigate.
+                    </Flex>
+                  </Text>
+                </Flex>
+
+                <Flex gap="3" mt="4" justify="end">
+                  <Dialog.Close>
+                    <Button variant="soft" color="gray">
+                      Close
+                    </Button>
+                  </Dialog.Close>
+                </Flex>
+              </Dialog.Content>
+            </Theme>
+          </Dialog.Root>
+        </Flex>
+
+        <Box style={{ height: "calc(100vh - 150px)", width: "100%", position: 'relative' }}>
+          {selectedBook && (
+            <ReactReader
+              ref={readerRef}
+              key={selectedBook.filename}
+              url={`/files/${selectedBook.filename}`}
+              location={location}
+              locationChanged={(epubcifi: string) => setLocation(epubcifi)}
+              getRendition={(_rendition: Rendition) => {
+                rendition.current = _rendition;
+                rendition.current.themes.fontSize(largeText ? "140%" : "100%");
+              }}
+            />
+          )}
+           <Flex
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '0',
+              right: '0',
+              justifyContent: 'space-between',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none'
+            }}
           >
-            Toggle Font Size
-          </button>
-          <a
-            href=""
-            className="ml-4 text-black border-2 border-black rounded-lg bg-transparent py-2 px-4"
-          >
-            {" "}
-            Change Books
-          </a>
-        </>
-      }
-    >
-      {selectedBook ? (
-        <ReactReader
-          url={`/files/${selectedBook.filename}`}
-          title={selectedBook.name}
-          location={location}
-          locationChanged={(loc: string) => setLocation(loc)}
-          getRendition={(_rendition: Rendition) => {
-            rendition.current = _rendition;
-            rendition.current.themes.fontSize(largeText ? "140%" : "100%");
-          }}
-        />
-      ) : (
-        <div className="book-selector text-center mt-10">
-          Select Book From Here Year Wise
-          <div className="mt-2">
-            <BookDropdown books={books} onSelect={handleSelectBook} />
-          </div>
-        </div>
-      )}
-    </Example>
+            <IconButton
+              onClick={onPrev}
+              style={{ pointerEvents: 'all', marginLeft: '1rem' }}
+              size="3"
+              variant="classic"
+            >
+              <ChevronLeft />
+            </IconButton>
+            <IconButton
+              onClick={onNext}
+              style={{ pointerEvents: 'all', marginRight: '1rem' }}
+              size="3"
+              variant="classic"
+            >
+              <ChevronRight />
+            </IconButton>
+          </Flex>
+        </Box>
+      </Flex>
+    </Card>
   );
 };
