@@ -1,11 +1,15 @@
+import '@radix-ui/themes/styles.css';
 import './index.css'
 
 import React, { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
+import {Theme} from '@radix-ui/themes'
 import App from './App'
 
 ReactDOM.createRoot(document.getElementById('root') ).render(
   <StrictMode>
-    <App />
+    <Theme>
+      <App />
+    </Theme>
   </StrictMode>
 )
