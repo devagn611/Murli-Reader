@@ -1,0 +1,10 @@
+Brand: Avyakt Murli Reader
+Canonical URL: https://avyakt-murli-reader.devagn.com
+Contact: devagnmaniya611@gmail.com
+Locale: en-IN
+Region: IN
+Short facts: https://avyakt-murli-reader.devagn.com/llms.txt
+Full brief: https://avyakt-murli-reader.devagn.com/llms-full.txt
+JSON-LD: Organization, WebSite, and WebApplication on every HTML page
+FAQ: visible on the home page and in FAQPage JSON-LD
+About: https://avyakt-murli-reader.devagn.com/about

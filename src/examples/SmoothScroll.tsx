@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ReactReader } from '../../lib/index';
-import type { Contents, Rendition } from 'epubjs';
-import { Select, Flex, Box, Card } from '@radix-ui/themes';
+import type { Rendition } from 'epubjs';
+import { Select, Flex, Box, Card, Heading } from '@radix-ui/themes';
+import { PageMeta } from '../components/PageMeta';
+import { publicFileUrl } from '../content/catalog';
+import { pages } from '../content/site';
 
 interface Book {
   href: string;
@@ -11,7 +14,7 @@ interface Book {
 
 const BookDropdown: React.FC<{
   books: Book[];
-  onSelect: (book: Book) => void;
+  onSelect: (_book: Book) => void;
 }> = ({ books, onSelect }) => {
   const handleSelect = (value: string) => {
     const selectedBook = books.find((book) => book.href === value);
@@ -34,13 +37,20 @@ const BookDropdown: React.FC<{
   );
 };
 
+function bookHref(href: string) {
+  if (href.startsWith('http://') || href.startsWith('https://')) {
+    return href;
+  }
+  return publicFileUrl(href);
+}
+
 export const SmoothScroll: React.FC = () => {
   const [location, setLocation] = useState<string | number>(0);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
 
   useEffect(() => {
-    fetch('/files/data.json')
+    fetch(publicFileUrl('files/data.json'))
       .then((response) => response.json())
       .then((data) => {
         setBooks(data.cards);
@@ -55,31 +65,42 @@ export const SmoothScroll: React.FC = () => {
   };
 
   return (
-    <Card>
-      <Flex direction="column" gap="4" align="center">
-        <BookDropdown books={books} onSelect={handleBookSelect} />
-        <Box style={{ height: 'calc(100vh - 150px)', width: '100%' }}>
-          {selectedBook && (
-            <ReactReader
-              key={selectedBook.href}
-              url={selectedBook.href}
-              location={location}
-              locationChanged={(loc: string) => setLocation(loc)}
-              epubOptions={{
-                flow: 'scrolled',
-                manager: 'continuous',
-              }}
-              getRendition={(_rendition: Rendition) => {
-                _rendition.hooks.content.register((contents: Contents) => {
-                  // @ts-ignore - manager type is missing in epubjs Rendition
-                  _rendition.manager.container.style['scroll-behavior'] =
-                    'smooth';
-                });
-              }}
-            />
-          )}
-        </Box>
-      </Flex>
-    </Card>
+    <>
+      <PageMeta page="smoothScroll" />
+      <Heading as="h1" size="6" mb="3">
+        {pages.smoothScroll.heading}
+      </Heading>
+      <Card>
+        <Flex direction="column" gap="4" align="center">
+          <BookDropdown books={books} onSelect={handleBookSelect} />
+          <Box style={{ height: 'calc(100vh - 150px)', width: '100%' }}>
+            {selectedBook && (
+              <ReactReader
+                key={selectedBook.href}
+                url={bookHref(selectedBook.href)}
+                location={location}
+                locationChanged={(loc: string) => setLocation(loc)}
+                epubOptions={{
+                  flow: 'scrolled',
+                  manager: 'continuous',
+                }}
+                getRendition={(_rendition: Rendition) => {
+                  _rendition.hooks.content.register(() => {
+                    const manager = (
+                      _rendition as Rendition & {
+                        manager?: { container?: { style: Record<string, string> } }
+                      }
+                    ).manager;
+                    if (manager?.container) {
+                      manager.container.style['scroll-behavior'] = 'smooth';
+                    }
+                  });
+                }}
+              />
+            )}
+          </Box>
+        </Flex>
+      </Card>
+    </>
   );
 };

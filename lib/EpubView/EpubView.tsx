@@ -21,12 +21,12 @@ export type IEpubViewProps = {
   epubViewStyles?: IEpubViewStyle
   loadingView?: React.ReactNode
   location: string | number | null
-  locationChanged(value: string): void
+  locationChanged(_value: string): void
   showToc?: boolean
-  tocChanged?(value: NavItem[]): void
-  getRendition?(rendition: Rendition): void
+  tocChanged?(_value: NavItem[]): void
+  getRendition?(_rendition: Rendition): void
   handleKeyPress?(): void
-  handleTextSelected?(cfiRange: string, contents: Contents): void
+  handleTextSelected?(_cfiRange: string, _contents: Contents): void
 }
 type IEpubViewState = {
   isLoaded: boolean
@@ -149,8 +149,14 @@ export class EpubView extends Component<IEpubViewProps, IEpubViewState> {
 
   onLocationChange = (loc: Location) => {
     const { location, locationChanged } = this.props
-    const newLocation = `${loc.start}`
-    if (location !== newLocation) {
+    const start = loc.start as unknown
+    const newLocation =
+      typeof start === 'string'
+        ? start
+        : start && typeof start === 'object' && 'cfi' in start
+          ? String((start as { cfi: string }).cfi)
+          : ''
+    if (newLocation && location !== newLocation) {
       this.location = newLocation
       locationChanged && locationChanged(newLocation)
     }

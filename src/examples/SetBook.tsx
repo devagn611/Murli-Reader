@@ -7,7 +7,7 @@ interface Book {
 }
 
 interface SetBookProps {
-  setSelectedBook: (book: Book) => void;
+  setSelectedBook: (_book: Book) => void;
 }
 
 function SetBook({ setSelectedBook }: SetBookProps) {

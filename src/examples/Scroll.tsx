@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ReactReader } from '../../lib/index';
 import type { Rendition } from 'epubjs';
 import {
@@ -7,17 +7,15 @@ import {
   Button,
   Box,
   Card,
+  Heading,
 } from '@radix-ui/themes';
-
-
-interface Book {
-  filename: string;
-  name: string;
-}
+import { PageMeta } from '../components/PageMeta';
+import { catalogBooks, publicFileUrl, type CatalogBook } from '../content/catalog';
+import { pages } from '../content/site';
 
 const BookDropdown: React.FC<{
-  books: Book[];
-  onSelect: (book: Book) => void;
+  books: CatalogBook[];
+  onSelect: (_book: CatalogBook) => void;
 }> = ({ books, onSelect }) => {
   const handleSelect = (value: string) => {
     const selectedBook = books.find((book) => book.filename === value);
@@ -27,7 +25,7 @@ const BookDropdown: React.FC<{
   };
 
   return (
-    <Select.Root onValueChange={handleSelect}>
+    <Select.Root onValueChange={handleSelect} defaultValue={books[0]?.filename}>
       <Select.Trigger placeholder="Select a Book" />
       <Select.Content>
         {books.map((book) => (
@@ -43,68 +41,8 @@ const BookDropdown: React.FC<{
 export const Scroll: React.FC = () => {
   const [largeText, setLargeText] = useState(false);
   const rendition = useRef<Rendition | undefined>(undefined);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [books, setBooks] = useState<Book[]>([]);
+  const [selectedBook, setSelectedBook] = useState<CatalogBook>(catalogBooks[0]);
   const [location, setLocation] = useState<string | number | null>(null);
-
-  useEffect(() => {
-    const fetchBooks = async () => {
-      const localBooks = [
-        { filename: '1969_Hindi_Avyakt_Vaani.epub', name: '1969' },
-        { filename: '1970_Hindi_Avyakt_Vaani.epub', name: '1970' },
-        { filename: '1971_Hindi_Avyakt_Vaani.epub', name: '1971' },
-        { filename: '1972_Hindi_Avyakt_Vaani.epub', name: '1972' },
-        { filename: '1973_Hindi_Avyakt_Vaani.epub', name: '1973' },
-        { filename: '1974_Hindi_Avyakt_Vaani.epub', name: '1974' },
-        { filename: '1975_Hindi_Avyakt_Vaani.epub', name: '1975' },
-        { filename: '1976_Hindi_Avyakt_Vaani.epub', name: '1976' },
-        { filename: '1977_Hindi_Avyakt_Vaani.epub', name: '1977' },
-        { filename: '1978_Hindi_Avyakt_Vaani.epub', name: '1978' },
-        { filename: '1979_Hindi_Avyakt_Vaani.epub', name: '1979' },
-        { filename: '1980_Hindi_Avyakt_Vaani.epub', name: '1980' },
-        { filename: '1981_Hindi_Avyakt_Vaani.epub', name: '1981' },
-        { filename: '1982_Hindi_Avyakt_Vaani.epub', name: '1982' },
-        { filename: '1983_Hindi_Avyakt_Vaani.epub', name: '1983' },
-        { filename: '1984_Hindi_Avyakt_Vaani.epub', name: '1984' },
-        { filename: '1985_Hindi_Avyakt_Vaani.epub', name: '1985' },
-        { filename: '1986_Hindi_Avyakt_Vaani.epub', name: '1986' },
-        { filename: '1987_Hindi_Avyakt_Vaani.epub', name: '1987' },
-        { filename: '1988_Hindi_Avyakt_Vaani.epub', name: '1988' },
-        { filename: '1989_Hindi_Avyakt_Vaani.epub', name: '1989' },
-        { filename: '1990_Hindi_Avyakt_Vaani.epub', name: '1990' },
-        { filename: '1991_Hindi_Avyakt_Vaani.epub', name: '1991' },
-        { filename: '1992_Hindi_Avyakt_Vaani.epub', name: '1992' },
-        { filename: '1993_Hindi_Avyakt_Vaani.epub', name: '1993' },
-        { filename: '1994_Hindi_Avyakt_Vaani.epub', name: '1994' },
-        { filename: '1995_Hindi_Avyakt_Vaani.epub', name: '1995' },
-        { filename: '1996_Hindi_Avyakt_Vaani.epub', name: '1996' },
-        { filename: '1997_Hindi_Avyakt_Vaani.epub', name: '1997' },
-        { filename: '1998_Hindi_Avyakt_Vaani.epub', name: '1998' },
-        { filename: '1999_Hindi_Avyakt_Vaani.epub', name: '1999' },
-        { filename: '2000_Hindi_Avyakt_Vaani.epub', name: '2000' },
-        { filename: '2001_Hindi_Avyakt_Vaani.epub', name: '2001' },
-        { filename: '2002_Hindi_Avyakt_Vaani.epub', name: '2002' },
-        { filename: '2003_Hindi_Avyakt_Vaani.epub', name: '2003' },
-        { filename: '2004_Hindi_Avyakt_Vaani.epub', name: '2004' },
-        { filename: '2005_Hindi_Avyakt_Vaani.epub', name: '2005' },
-        { filename: '2006_Hindi_Avyakt_Vaani.epub', name: '2006' },
-        { filename: '2007_Hindi_Avyakt_Vaani.epub', name: '2007' },
-        { filename: '2008_Hindi_Avyakt_Vaani.epub', name: '2008' },
-        { filename: '2009_Hindi_Avyakt_Vaani.epub', name: '2009' },
-        { filename: '2010_Hindi_Avyakt_Vaani.epub', name: '2010' },
-        { filename: '2011_Hindi_Avyakt_Vaani.epub', name: '2011' },
-        { filename: '2012_Hindi_Avyakt_Vaani.epub', name: '2012' },
-        { filename: '2013_Hindi_Avyakt_Vaani.epub', name: '2013' },
-        { filename: '2014_Hindi_Avyakt_Vaani.epub', name: '2014' },
-        { filename: '2015_Hindi_Avyakt_Vaani.epub', name: '2015' },
-        { filename: '2016_Hindi_Avyakt_Vaani.epub', name: '2016' },
-        { filename: '2017_Hindi_Avyakt_Vaani.epub', name: '2017' },
-      ];
-      setBooks(localBooks);
-      setSelectedBook(localBooks[0]);
-    };
-    fetchBooks();
-  }, []);
 
   useEffect(() => {
     if (rendition.current) {
@@ -112,39 +50,45 @@ export const Scroll: React.FC = () => {
     }
   }, [largeText]);
 
-  const handleBookSelect = (book: Book) => {
+  const handleBookSelect = (book: CatalogBook) => {
     setSelectedBook(book);
   };
 
   return (
-    <Card>
-      <Flex direction="column" gap="4" align="center">
-        <Flex gap="4" align="center">
-          <BookDropdown books={books} onSelect={handleBookSelect} />
-          <Button onClick={() => setLargeText(!largeText)}>
-            Toggle font size
-          </Button>
-        </Flex>
+    <>
+      <PageMeta page="scroll" />
+      <Heading as="h1" size="6" mb="3">
+        {pages.scroll.heading}
+      </Heading>
+      <Card>
+        <Flex direction="column" gap="4" align="center">
+          <Flex gap="4" align="center">
+            <BookDropdown books={catalogBooks} onSelect={handleBookSelect} />
+            <Button onClick={() => setLargeText(!largeText)}>
+              Toggle font size
+            </Button>
+          </Flex>
 
-        <Box style={{ height: 'calc(100vh - 150px)', width: '100%' }}>
-          {selectedBook && (
-            <ReactReader
-              key={selectedBook.filename}
-              url={`/files/${selectedBook.filename}`}
-              location={location}
-              locationChanged={(loc) => setLocation(loc)}
-              getRendition={(_rendition: Rendition) => {
-                rendition.current = _rendition;
-                rendition.current.themes.fontSize(largeText ? '140%' : '100%');
-              }}
-              epubOptions={{
-                flow: 'scrolled',
-                manager: 'continuous',
-              }}
-            />
-          )}
-        </Box>
-      </Flex>
-    </Card>
+          <Box style={{ height: 'calc(100vh - 150px)', width: '100%' }}>
+            {selectedBook && (
+              <ReactReader
+                key={selectedBook.filename}
+                url={publicFileUrl(`files/${selectedBook.filename}`)}
+                location={location}
+                locationChanged={(loc) => setLocation(loc)}
+                getRendition={(_rendition: Rendition) => {
+                  rendition.current = _rendition;
+                  rendition.current.themes.fontSize(largeText ? '140%' : '100%');
+                }}
+                epubOptions={{
+                  flow: 'scrolled',
+                  manager: 'continuous',
+                }}
+              />
+            )}
+          </Box>
+        </Flex>
+      </Card>
+    </>
   );
 };
