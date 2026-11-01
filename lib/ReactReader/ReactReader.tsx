@@ -6,7 +6,7 @@ import {
   type IReactReaderStyle,
 } from './style'
 import { type NavItem } from 'epubjs'
-import { Button, Card, IconButton } from '@radix-ui/themes'
+import { Button, IconButton } from '@radix-ui/themes'
 import { ChevronLeft, ChevronRight, Menu, X } from 'lucide-react'
 
 type SwipeWrapperProps = {
@@ -21,7 +21,7 @@ const SwipeWrapper = ({ children, swipeProps }: SwipeWrapperProps) => {
 
 type TocItemProps = {
   data: NavItem
-  setLocation: (value: string) => void
+  setLocation: (_value: string) => void
   styles?: CSSProperties
 }
 
@@ -48,9 +48,12 @@ const TocItem = ({ data, setLocation, styles }: TocItemProps) => (
 export type IReactReaderProps = IEpubViewProps & {
   title?: string
   showToc?: boolean
+  showTocToggle?: boolean
+  showArrows?: boolean
   readerStyles?: IReactReaderStyle
   epubViewStyles?: IEpubViewStyle
   swipeable?: boolean
+  onTocOpenChange?: (open: boolean) => void
 }
 
 type IReactReaderState = {
@@ -73,9 +76,12 @@ export class ReactReader extends PureComponent<
     super(props)
   }
   toggleToc = () => {
-    this.setState({
-      expandedToc: !this.state.expandedToc,
-    })
+    this.setState(
+      (state) => ({
+        expandedToc: !state.expandedToc,
+      }),
+      () => this.props.onTocOpenChange?.(this.state.expandedToc)
+    )
   }
 
   next = () => {
@@ -106,8 +112,20 @@ export class ReactReader extends PureComponent<
     const { toc, expandedToc } = this.state
     const { readerStyles = defaultStyles } = this.props
     return (
-      <div>
-        <Card size="2" style={readerStyles.tocArea}>
+      <>
+        {expandedToc && (
+          <button
+            type="button"
+            className="toc-backdrop"
+            aria-label="Close table of contents"
+            onClick={this.toggleToc}
+          />
+        )}
+        <nav
+          className={`toc-drawer glass-panel${expandedToc ? ' open' : ''}`}
+          aria-label="Table of contents"
+          aria-hidden={!expandedToc}
+        >
           <div style={readerStyles.toc}>
             {toc.map((item, i) => (
               <TocItem
@@ -118,35 +136,33 @@ export class ReactReader extends PureComponent<
               />
             ))}
           </div>
-        </Card>
-        {expandedToc && (
-          <div style={readerStyles.tocBackground} onClick={this.toggleToc} />
-        )}
-      </div>
+        </nav>
+      </>
     )
   }
 
   setLocation = (loc: string) => {
-    const { locationChanged } = this.props
+    const { locationChanged, onTocOpenChange } = this.props
     this.setState(
       {
         expandedToc: false,
       },
-      () => locationChanged && locationChanged(loc)
+      () => {
+        onTocOpenChange?.(false)
+        locationChanged && locationChanged(loc)
+      }
     )
   }
 
   renderTocToggle() {
     const { expandedToc } = this.state
-    const { readerStyles = defaultStyles } = this.props
     return (
       <IconButton
         variant="ghost"
-        style={Object.assign(
-          {},
-          readerStyles.tocButton,
-          expandedToc ? readerStyles.tocButtonExpanded : {}
-        )}
+        aria-label={expandedToc ? 'Close table of contents' : 'Open table of contents'}
+        aria-expanded={expandedToc}
+        className="glass-pill"
+        style={{ position: 'absolute', top: 16, left: 10, zIndex: 20 }}
         onClick={this.toggleToc}
       >
         {expandedToc ? <X /> : <Menu />}
@@ -158,6 +174,8 @@ export class ReactReader extends PureComponent<
     const {
       title,
       showToc = true,
+      showTocToggle = true,
+      showArrows = true,
       loadingView,
       readerStyles = defaultStyles,
       locationChanged,
@@ -167,21 +185,15 @@ export class ReactReader extends PureComponent<
     } = this.props
     const { toc, expandedToc } = this.state
     return (
-      <div style={readerStyles.container}>
-        <div
-          style={Object.assign(
-            {},
-            readerStyles.readerArea,
-            expandedToc ? readerStyles.containerExpanded : {}
-          )}
-        >
-          {showToc && this.renderTocToggle()}
-          <div style={readerStyles.titleArea}>{title}</div>
+      <div style={readerStyles.container} className="react-reader">
+        <div style={readerStyles.readerArea}>
+          {showToc && showTocToggle && this.renderTocToggle()}
+          {title ? <div style={readerStyles.titleArea}>{title}</div> : null}
           <SwipeWrapper
             swipeProps={{
               onSwipedRight: this.prev,
               onSwipedLeft: this.next,
-              trackMouse: true,
+              trackMouse: false,
             }}
           >
             <div style={readerStyles.reader}>
@@ -202,26 +214,32 @@ export class ReactReader extends PureComponent<
               {swipeable && <div style={readerStyles.swipeWrapper} />}
             </div>
           </SwipeWrapper>
-          <IconButton
-            size="4"
-            variant="ghost"
-            color="gray"
-            style={Object.assign({}, readerStyles.arrow, readerStyles.prev)}
-            onClick={this.prev}
-          >
-            <ChevronLeft />
-          </IconButton>
-          <IconButton
-            size="4"
-            variant="ghost"
-            color="gray"
-            style={Object.assign({}, readerStyles.arrow, readerStyles.next)}
-            onClick={this.next}
-          >
-            <ChevronRight />
-          </IconButton>
+          {showArrows && (
+            <>
+              <IconButton
+                size="4"
+                variant="ghost"
+                color="gray"
+                aria-label="Previous page"
+                style={Object.assign({}, readerStyles.arrow, readerStyles.prev)}
+                onClick={this.prev}
+              >
+                <ChevronLeft />
+              </IconButton>
+              <IconButton
+                size="4"
+                variant="ghost"
+                color="gray"
+                aria-label="Next page"
+                style={Object.assign({}, readerStyles.arrow, readerStyles.next)}
+                onClick={this.next}
+              >
+                <ChevronRight />
+              </IconButton>
+            </>
+          )}
         </div>
-        {showToc && toc && this.renderToc()}
+        {showToc && toc && expandedToc && this.renderToc()}
       </div>
     )
   }

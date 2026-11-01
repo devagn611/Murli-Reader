@@ -1,0 +1,22 @@
+# Avyakt Murli Reader
+
+> Avyakt Murli Reader is a web reader for Hindi Avyakt Murlis. It is dedicated to Brahma Kumaris students who want an easy, accessible way to read Avyakt Vaani.
+
+It is for students of Brahma Kumaris. The reader interface is in English. The murli text is in Hindi.
+
+## Product
+- 49 Hindi Avyakt Vaani volumes covering 1969 to 2017
+- Year picker to open a book
+- Tap the sides or swipe to turn pages
+- Tap the center to show or hide the menu
+- Font-size toggle for larger text
+- Light and dark appearance
+- How-to-read guide in English and Gujarati
+
+## Pages
+- [Home](https://avyakt-murli-reader.devagn.com): Read Avyakt Murlis
+- [About](https://avyakt-murli-reader.devagn.com/about): About the reader, book count, years, and contact
+
+## Contact
+- Email: devagnmaniya611@gmail.com
+- Creator: Devagn Maniya, a kumar of BK Gariyadhar

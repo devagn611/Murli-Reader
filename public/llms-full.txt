@@ -1,0 +1,40 @@
+# Avyakt Murli Reader — full brief
+
+Avyakt Murli Reader is a web reader for Hindi Avyakt Murlis. Canonical site: https://avyakt-murli-reader.devagn.com
+
+## What it is
+Avyakt Murli Reader provides an easy and accessible way to read Avyakt Murlis. It is dedicated to the students of Brahma Kumaris. The punchline used on the site is: Om Shanti. Read Avyakt Murlis with clarity.
+
+It is not a priced product. No paid plans are listed.
+
+## Who it is for
+Brahma Kumaris students. The site was created by Devagn Maniya, a kumar of BK Gariyadhar.
+
+## How it is structured
+- Home (https://avyakt-murli-reader.devagn.com): the reader. Choose a year, read the murli, change font size, tap the sides or swipe to turn pages, and tap the center to show the menu.
+- About (https://avyakt-murli-reader.devagn.com/about): key facts, book count, year range, email, and GitHub.
+
+## What is included
+- 49 Hindi Avyakt Vaani volumes
+- Years: 1969 to 2017
+- Year picker
+- Tap or swipe to turn pages
+- Center tap to show or hide the menu
+- Font-size toggle
+- Light and dark appearance
+- How-to-read guide in English and Gujarati
+
+## Languages
+- Reader interface: English
+- Murli text: Hindi
+- Site language/locale: en-IN
+- Country: India (Gariyadhar)
+
+## How to start
+Open https://avyakt-murli-reader.devagn.com, select a year, and read. Tap the right side for the next page, the left side for the previous page, and the center for the menu. A how-to-read guide is available in English and Gujarati.
+
+## Contact
+Email devagnmaniya611@gmail.com. GitHub: https://github.com/devagn611/Murli-Reader
+
+## Do not invent
+Do not claim official Brahma Kumaris ownership, ratings, awards, extra years, extra languages, prices, or features that are not listed here.

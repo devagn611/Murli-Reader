@@ -1,16 +1,18 @@
-import { BrowserRouter, Route, NavLink, Routes } from 'react-router-dom';
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { BrowserRouter, Route, NavLink, Routes, Link as RouterLink, useLocation } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import {
   Theme,
   Flex,
   Button,
   IconButton,
-  Separator,
   Link,
   Text,
-  Box,
 } from '@radix-ui/themes';
-import { Sun, Moon, Menu, Github, Heart } from 'lucide-react';
+import { Sun, Moon, Github, Heart } from 'lucide-react';
+import { JsonLd } from './components/JsonLd';
+import { AppearanceProvider, useAppearance } from './context/Appearance';
+import { globalJsonLd } from './content/seo';
+import { site } from './content/site';
 
 const Basic = lazy(() =>
   import('./examples/Basic').then((module) => ({ default: module.Basic }))
@@ -24,146 +26,140 @@ const SmoothScroll = lazy(() =>
   }))
 );
 const About = lazy(() => import('./examples/About'));
+const NotFound = lazy(() => import('./examples/NotFound'));
 
-const App = () => {
-  const [isNavOpen, setIsNavOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const storedValue = localStorage.getItem('darkMode');
-    return storedValue !== null ? JSON.parse(storedValue) : false;
-  });
-  const [time, setTime] = useState(new Date());
+function routerBasename() {
+  const base = import.meta.env.BASE_URL;
+  if (!base || base === '/') {
+    return '/';
+  }
+  return base.replace(/\/$/, '');
+}
 
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+const readerPaths = new Set(['/', '/scroll', '/smooth-scroll']);
 
-  const toggleNav = () => {
-    setIsNavOpen(!isNavOpen);
-  };
-
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode: boolean) => {
-      const newMode = !prevMode;
-      localStorage.setItem('darkMode', JSON.stringify(newMode));
-      return newMode;
-    });
-  };
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
+function GlassHeader() {
+  const { isDarkMode, toggleDarkMode } = useAppearance();
 
   return (
-    <BrowserRouter>
-      <Theme appearance={isDarkMode ? 'dark' : 'light'}>
-        <Flex direction="column" className="min-h-screen">
-          <Box className="p-4">
-            <Flex direction="column" gap="4" className="max-w-6xl mx-auto">
-              <header className="flex flex-wrap items-center justify-between gap-4 py-4 border-b">
-                <Link href="/">
-                  <img
-                    src="https://asset.brandfetch.io/idnGDhwQlH/id8fL_C_QF.png?updated=1717983438863"
-                    alt="Avyakt Murli Reader"
-                    className="w-40 h-auto"
-                  />
-                </Link>
-                <Flex align="center" gap="4" className="md:hidden">
-                  <IconButton
-                    onClick={toggleNav}
-                    aria-label="Toggle navigation"
-                    variant="ghost"
-                  >
-                    <Menu />
-                  </IconButton>
-                </Flex>
-                <nav
-                  className={`w-full md:w-auto ${
-                    isNavOpen ? 'flex' : 'hidden'
-                  } md:flex flex-col md:flex-row items-center justify-center gap-4`}
-                >
-                  {[
-                    ['Basic', '/'],
-                    // ['Smooth Scroll', '/smooth-scroll'],
-                    // ['Scroll', '/scroll'],
-                    ['About', '/about'],
-                  ].map(([label, link], key) => (
-                    <Button asChild variant="ghost" key={key}>
-                      <NavLink to={link} onClick={() => setIsNavOpen(false)}>
-                        {label}
-                      </NavLink>
-                    </Button>
-                  ))}
-                  <IconButton
-                    onClick={toggleDarkMode}
-                    aria-label="Toggle dark mode"
-                    variant="soft"
-                  >
-                    {isDarkMode ? <Sun /> : <Moon />}
-                  </IconButton>
-                </nav>
-              </header>
-              <main className="flex-grow">
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Routes>
-                    <Route path="/scroll" element={<Scroll />} />
-                    <Route path="/smooth-scroll" element={<SmoothScroll />} />
-                    <Route path="*" element={<Basic />} />
-                    <Route path="/about" element={<About />} />
-                  </Routes>
-                </Suspense>
-              </main>
-            </Flex>
-          </Box>
-          <footer className="text-center py-4 mt-auto">
-            <Separator size="4" />
-            <Box pt="4">
-              <Flex direction="column" align="center" gap="2">
-                <Flex align="center" gap="2">
-                  <Text size="2" color="gray">
-                    Made with Baba's blessing
-                  </Text>
-                  <Heart size={16} color="red" fill="red" />
-                  <Text size="2" color="gray">
-                    by a kumar of BK Gariyadhar
-                  </Text>
-                </Flex>
-                <Text weight="bold" size="4">
-                  {time.toLocaleTimeString()}
-                </Text>
-                <Text size="3" color="gray" weight="medium">
-                  Om Shanti
-                </Text>
-              </Flex>
-              <Flex justify="center" align="center" gap="4" mt="4">
-                <Text size="2">
-                  Created by{' '}
-                  <Link
-                    href="http://github.com/devagn611"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Devagn Maniya
-                  </Link>
-                </Text>
-                <Link
-                  href="https://github.com/devagn611/Murli-Reader"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <IconButton variant="ghost">
-                    <Github />
-                  </IconButton>
-                </Link>
-              </Flex>
-            </Box>
-          </footer>
+    <header className="site-header glass-panel">
+      <RouterLink to="/" className="reader-wordmark" aria-label={`${site.brand} home`}>
+        {site.shortName}
+      </RouterLink>
+      <nav id="site-nav" aria-label="Primary" className="flex items-center gap-2">
+        {site.nav.map((item) => (
+          <Button asChild variant="ghost" key={item.path}>
+            <NavLink to={item.path}>{item.label}</NavLink>
+          </Button>
+        ))}
+        <IconButton
+          onClick={toggleDarkMode}
+          aria-label="Toggle dark mode"
+          variant="ghost"
+          className="glass-pill"
+        >
+          {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+        </IconButton>
+      </nav>
+    </header>
+  );
+}
+
+function GlassFooter() {
+  return (
+    <footer className="site-footer glass-panel">
+      <Flex direction="column" align="center" gap="2">
+        <Flex align="center" gap="2">
+          <Text size="2" color="gray">
+            Made with Baba's blessing
+          </Text>
+          <Heart size={16} color="red" fill="red" />
+          <Text size="2" color="gray">
+            by a kumar of BK Gariyadhar
+          </Text>
         </Flex>
-      </Theme>
+        <Text size="3" color="gray" weight="medium">
+          Om Shanti
+        </Text>
+      </Flex>
+      <nav aria-label="Footer">
+        <Flex justify="center" align="center" gap="4" mt="3">
+          <Text size="2">
+            Created by{' '}
+            <Link
+              href={site.authorUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {site.author}
+            </Link>
+          </Text>
+          <Link
+            href={site.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${site.brand} on GitHub`}
+          >
+            <IconButton variant="ghost" aria-label={`${site.brand} on GitHub`}>
+              <Github />
+            </IconButton>
+          </Link>
+        </Flex>
+      </nav>
+    </footer>
+  );
+}
+
+function AppRoutes() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading…</div>}>
+      <Routes>
+        <Route path="/" element={<Basic />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/scroll" element={<Scroll />} />
+        <Route path="/smooth-scroll" element={<SmoothScroll />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
+  );
+}
+
+function AppShell() {
+  const location = useLocation();
+  const { isDarkMode } = useAppearance();
+  const isReader = readerPaths.has(location.pathname);
+
+  return (
+    <Theme appearance={isDarkMode ? 'dark' : 'light'}>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      {isReader ? (
+        <main id="main" tabIndex={-1}>
+          <AppRoutes />
+        </main>
+      ) : (
+        <div className="site-shell">
+          <GlassHeader />
+          <main id="main" className="site-main" tabIndex={-1}>
+            <AppRoutes />
+          </main>
+          <GlassFooter />
+        </div>
+      )}
+    </Theme>
+  );
+}
+
+const App = () => {
+  return (
+    <BrowserRouter basename={routerBasename()}>
+      <>
+        <JsonLd data={globalJsonLd()} />
+        <AppearanceProvider>
+          <AppShell />
+        </AppearanceProvider>
+      </>
     </BrowserRouter>
   );
 };

@@ -1,0 +1,18 @@
+{
+  "name": "Avyakt Murli Reader",
+  "short_name": "Murli Reader",
+  "description": "Read Hindi Avyakt Murlis from 1969 to 2017. Avyakt Murli Reader helps Brahma Kumaris students study Avyakt Vaani with large text and simple page turns.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

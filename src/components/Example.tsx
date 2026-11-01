@@ -1,4 +1,4 @@
-import React, { type ReactNode, useState, useEffect } from 'react'
+import { type ReactNode, useState, useEffect } from 'react'
 
 type Props = {
   title: string
